@@ -1,49 +1,32 @@
-import os, time, curses, logging
 from pynput import keyboard
-from curses import wrapper
 
 def split_word(word, pos):
   return (word[:pos], word[pos:])
 
-class EditableText:
-  def __init__(self, width, height):
+class TextDisplay:
+  def __init__(self, width, height, text):
     self.width = width
     self.height = height
-    self.text = "WELCOME TO THE CHESTNUT BIG BOARD"
+    self.text = text
     
-  def mount(self):
-    this_module = self
-    def on_press(key):
-      this_module.on_press(key)
-    self.listener = keyboard.Listener(on_press=on_press)
-    self.listener.start()
-    
-  def on_press(self, key):
-    try:
-      # self.text += key.char
-      self.append_text_if_possible(key.char)
-    except AttributeError: 
-      if key == keyboard.Key.backspace:
-        self.text = self.text[:-1]
-      if key == keyboard.Key.space:
-        # self.text += " "
-        self.append_text_if_possible(" ")
-        
-  def append_text_if_possible(self, char):
+  def insert(self, char):
     cursor_row, _ = self.get_cursor_position()
     if cursor_row < self.height:
       self.text += char
+        
+  def backspace(self):
+    self.text = self.text[:-1]
 
   def get_cursor_position(self):
-    rows = self.rows()
+    rows = self.get_rows()
     last_row_index = len(rows) - 1
     last_col_index = len(rows[-1]) - 1
     if last_col_index >= self.width - 1:
       return [last_row_index + 1, 0]
     else:
-      return (len(self.rows()) - 1, min(len(self.rows()[-1]), self.width))
+      return (len(rows) - 1, min(len(rows[-1]), self.width))
   
-  def rows(self):
+  def get_rows(self):
     words = self.text.split(" ")
     rows = []
     word_index = 0
